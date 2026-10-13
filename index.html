@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>iPhone 16 Pro Anatomy — 3D CAD Exploded Video</title>
+  <style>
+    :root {
+      --page-bg: #05070b;
+      --card-border: rgba(255, 255, 255, 0.14);
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --studio-grad: radial-gradient(circle at 50% 44%, #e2e5ec 0%, #c8ccd4 58%, #aeb3bd 100%);
+    }
+
+    body.dark-studio {
+      --studio-grad: radial-gradient(circle at 50% 44%, #1e293b 0%, #0f172a 62%, #020617 100%);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background: var(--page-bg);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 16px 40px;
+    }
+
+    .post-shell {
+      max-width: 1060px;
+      width: 100%;
+    }
+
+    .post-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .author-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .author-line {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .author-line strong {
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    .post-title {
+      font-size: 1.25rem;
+      font-weight: 500;
+      color: #e2e8f0;
+      letter-spacing: -0.01em;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .btn {
+      background: rgba(30, 41, 59, 0.8);
+      color: #e2e8f0;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      padding: 7px 13px;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.16s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn:hover {
+      background: rgba(51, 65, 85, 0.9);
+      border-color: rgba(255, 255, 255, 0.35);
+      transform: translateY(-1px);
+    }
+
+    .btn.active {
+      background: rgba(56, 189, 248, 0.2);
+      border-color: #38bdf8;
+      color: #7dd3fc;
+    }
+
+    /* Video Player Frame (Matches @quantapar X/Twitter video player aesthetic) */
+    .video-frame {
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      border-radius: 24px;
+      overflow: hidden;
+      position: relative;
+      background: var(--studio-grad);
+      border: 1px solid var(--card-border);
+      box-shadow: 0 24px 65px rgba(0, 0, 0, 0.75);
+      transition: background 0.35s ease;
+    }
+
+    #canvas-holder {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      cursor: grab;
+    }
+
+    #canvas-holder:active {
+      cursor: grabbing;
+    }
+
+    #canvas-holder canvas {
+      width: 100% !important;
+      height: 100% !important;
+      display: block;
+    }
+
+    /* Floating 2D Layer Callout Labels */
+    #labels-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+
+    #labels-overlay.visible {
+      opacity: 1;
+    }
+
+    .layer-label {
+      position: absolute;
+      top: 0;
+      left: 0;
+      transform: translate(-50%, -50%);
+      background: rgba(15, 23, 42, 0.82);
+      backdrop-filter: blur(8px);
+      color: #f8fafc;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.73rem;
+      font-weight: 600;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+    }
+
+    .layer-label .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #38bdf8;
+      display: inline-block;
+    }
+
+    /* Interactive Hint Pill */
+    .hint-pill {
+      position: absolute;
+      top: 16px;
+      left: 18px;
+      background: rgba(15, 23, 42, 0.48);
+      backdrop-filter: blur(8px);
+      color: rgba(248, 250, 252, 0.9);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      font-weight: 500;
+      pointer-events: none;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+    }
+
+    /* Bottom Video Scrubber Bar */
+    .video-controls {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 26px 22px 16px;
+      background: linear-gradient(to top, rgba(15, 18, 24, 0.62) 0%, rgba(15, 18, 24, 0.22) 60%, transparent 100%);
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.28);
+      border-radius: 999px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: height 0.15s ease;
+    }
+
+    .progress-track:hover {
+      height: 8px;
+    }
+
+    #progress-fill {
+      width: 29.4%;
+      height: 100%;
+      background: #ffffff;
+      border-radius: 999px;
+    }
+
+    .controls-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #ffffff;
+    }
+
+    .left-controls, .right-controls {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .icon-btn {
+      background: none;
+      border: none;
+      color: #ffffff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0.92;
+      transition: opacity 0.15s, transform 0.15s;
+    }
+
+    .icon-btn:hover {
+      opacity: 1;
+      transform: scale(1.08);
+    }
+
+    #time-display {
+      font-size: 1.02rem;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.01em;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+    }
+
+    /* Layer Legend Cards Below Video */
+    .layers-grid {
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(225px, 1fr));
+      gap: 10px;
+    }
+
+    .layer-card {
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid rgba(148, 163, 184, 0.15);
+      border-radius: 12px;
+      padding: 11px 14px;
+      font-size: 0.82rem;
+    }
+
+    .layer-card strong {
+      display: block;
+      color: #f8fafc;
+      margin-bottom: 3px;
+    }
+
+    .layer-card span {
+      color: #94a3b8;
+      font-size: 0.76rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="post-shell">
+    <div class="post-header">
+      <div class="author-meta">
+        <div class="author-line">
+          <strong>iPhone 16 Pro CAD</strong>
+          <span>@antigravity · Three.js WebGL</span>
+        </div>
+        <div class="post-title">iphone 16 pro anatomy — 9-layer exploded view (0:17)</div>
+      </div>
+
+      <div class="toolbar">
+        <button class="btn" onclick="iphoneAnatomy.setTime(0.4)">📱 0:00 Birleşik</button>
+        <button class="btn" onclick="iphoneAnatomy.setTime(5.2)">💥 0:05 Patlatılmış Anatomi</button>
+        <button class="btn" id="btn-labels" onclick="iphoneAnatomy.toggleLabels()">🏷️ Katman İsimleri</button>
+        <button class="btn" id="btn-theme" onclick="iphoneAnatomy.toggleTheme()">🌙 Koyu Keynote Modu</button>
+        <button class="btn" id="btn-record" onclick="iphoneAnatomy.recordVideo()">🎥 Video İndir (Kaydet)</button>
+      </div>
+    </div>
+
+    <div class="video-frame" id="video-frame">
+      <div id="canvas-holder"></div>
+      <div id="labels-overlay"></div>
+      <div class="hint-pill">🖱️ Sürükle: 360° 3D Açı • Tekerlek: Yakınlaştır</div>
+
+      <div class="video-controls">
+        <div class="progress-track" id="scrubber" onclick="handleScrub(event)">
+          <div id="progress-fill"></div>
+        </div>
+        <div class="controls-row">
+          <div class="left-controls">
+            <button class="icon-btn" onclick="iphoneAnatomy.togglePlay()" title="Oynat / Duraklat">
+              <svg id="play-icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <rect x="6" y="4" width="4" height="16" rx="1"/>
+                <rect x="14" y="4" width="4" height="16" rx="1"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="right-controls">
+            <span id="time-display">0:05 / 0:17</span>
+            <button class="icon-btn" onclick="iphoneAnatomy.toggleLabels()" title="Katman Etiketleri">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              </svg>
+            </button>
+            <button class="icon-btn" onclick="toggleFullscreen()" title="Tam Ekran">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="layers-grid">
+      <div class="layer-card">
+        <strong>9. Ceramic Shield &amp; OLED Ekran</strong>
+        <span>Dynamic Island kesiti, Super Retina XDR panel ve altın BTB ekran flex kablosu</span>
+      </div>
+      <div class="layer-card">
+        <strong>7–8. 16x Mikro Vida &amp; Çelik İç Plaka</strong>
+        <span>Y000/Pentalobe vidalar, paslanmaz çelik EMI kalkanları ve IP68 su geçirmezlik contası</span>
+      </div>
+      <div class="layer-card">
+        <strong>5–6. A18 Pro Anakart, L-Batarya &amp; Kamera</strong>
+        <span>Çift katmanlı siyah PCB, altın SMD pedler, 3582 mAh L-batarya, 48MP üçlü kamera &amp; Taptic Engine</span>
+      </div>
+      <div class="layer-card">
+        <strong>1–4. Grade 5 Titanyum Şasi &amp; MagSafe</strong>
+        <span>CNC işlenmiş Ti-6Al-4V kasa, grafit termal plaka, MagSafe bakır bobin &amp; 36 neodimyum mıknatıs</span>
+      </div>
+    </div>
+  </div>
+
+  <script src="three.min.js"></script>
+  <script src="anatomy.js"></script>
+  <script>
+    function handleScrub(e) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const ratio = (e.clientX - rect.left) / rect.width;
+      window.iphoneAnatomy.seekTo(ratio);
+    }
+
+    function toggleFullscreen() {
+      const el = document.getElementById('video-frame');
+      if (!document.fullscreenElement) {
+        el.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen();
+      }
+    }
+  </script>
+</body>
+</html>
